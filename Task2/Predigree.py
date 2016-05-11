@@ -8,9 +8,26 @@ class Gender(object):
     UNKNOWN, MALE, FEMALE = range(3)
 
 
+# little more OOP to improve extensibility
 class Relation(object):
     HUSBAND, WIFE, FATHER, MOTHER, SON, DAUGHTER, \
         SISTER, BROTHER, CHILD = range(9)
+
+    @staticmethod
+    def by_name(self, name):
+        return ["husband", "wife", "father", "mother", "son", "daughter",
+                "sister", "brother", "child"].index(name)
+
+    @staticmethod
+    def gender_by_relation(self, relation):
+        if relation == Relation.HUSBAND or relation == Relation.FATHER \
+                or relation == Relation.SON or relation == Relation.BROTHER:
+            return Gender.MALE
+        elif relation == Relation.WIFE or relation == Relation.MOTHER \
+                or relation == Relation.DAUGHTER or relation == Relation.SISTER:
+            return Gender.FEMALE
+        else:
+            return Gender.UNKNOWN
 
 
 class Person(object):
@@ -72,7 +89,9 @@ class Person(object):
         return True
 
 
-
+class PedigreeHolder(object):
+    def __init__(self):
+        self.people = []
 
 
 a = Person("Alex", Person.MALE)
