@@ -41,8 +41,10 @@ class Person(object):
         self.spouse = spouse
 
     def __hash__(self):
-        return hash((self.name, self.gender, self.parents,
-                     self.children, self.siblings, self.spouse))
+        return hash(self.name) ^ hash(self.gender)
+
+    def __eq__(self, other):
+        return self.name == other.name and self.gender == other.gender
 
     def add_parent(self, parent):
         if Person.__add_to_group(self.parents, parent):
@@ -74,6 +76,10 @@ class Person(object):
         else:
             raise Exception(self.name+" Already have a spouse")
 
+    def find_by_name(self, name):
+        if self.name == name:
+            return self
+
     # we can have only two children/siblings with the same name,
     # they should have different genders, though
     @staticmethod
@@ -92,6 +98,15 @@ class Person(object):
 class PedigreeHolder(object):
     def __init__(self):
         self.people = []
+
+    def add(self, statement):
+        who, _is, whose, rel = statement.split()
+        if _is != "is" or not whose.endswith('\'s'):
+            raise Exception("Wrong input statement: "+statement)
+
+    def find_by_name(self, name):
+        for p in self.people:
+            if self.find_by_name(name)
 
 
 a = Person("Alex", Person.MALE)
