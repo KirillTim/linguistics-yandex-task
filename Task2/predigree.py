@@ -174,3 +174,47 @@ class Person(object):
                 list1.append(i)
         return list1
 
+
+class PedigreeHolder(object):
+    def __init__(self):
+        self.people = []
+
+    def add(self, statement):
+        def find_node(node):
+            persons = self.find_persons(node)
+            if len(persons) > 1:
+                raise Exception("Ambiguous name: " + node.name)
+            elif len(persons) == 1:
+                return persons[0]
+            return None
+
+        who_name, _is, whose_name, rel = statement.split()
+        if _is != "is" or not whose_name.endswith('\'s'):
+            raise Exception("Wrong input statement: "+statement)
+        who = Person(who_name, Gender.by_relation(Relation.by_name(rel)))
+        whose = Person(whose_name)
+
+        node = find_node(who)
+        if node:
+            who = node
+
+        node = find_node(whose)
+        if node:
+            self.people.remove(node)
+            whose = node
+
+        PedigreeHolder.__add_relation(who, whose, Relation.by_name(rel))
+
+    def find_persons(self, who):
+        persons = []
+        for p in self.people:
+            persons += p.find_all(who)
+        return persons
+
+    @staticmethod
+    def __add_relation(who, whose, relation):
+        if relation in [Relation.MOTHER, Relation.FATHER]:
+            for p in who.children:
+                p.add_sibling(whose)
+            who.add_child(whose)
+
