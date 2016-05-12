@@ -41,27 +41,35 @@ class Relation(object):
 
 class Person(object):
     def __init__(self, name, gender=Gender.UNKNOWN,
-                 parents=list(), children=list(), siblings=list(), spouse=None):
+                 parents=None, children=None, siblings=None, spouse=None):
         self.name = name
         self.gender = gender
-        self.parents = parents
-        self.children = children
-        self.siblings = [self] if not siblings else siblings
+        self.parents = parents.copy() if parents else list()
+        self.children = children.copy() if children else list()
+        self.siblings = siblings.copy() if siblings else [self]
         self.spouse = spouse
 
     def __hash__(self):
         return hash(self.name) ^ hash(self.gender)
 
     def __eq__(self, other):
+        if not isinstance(other, Person):
+            return False
         return self.name == other.name and self.gender == other.gender
+
+    def __lt__(self, other):
+        return self.__hash__() < other.__hash__()
 
     def add_parent(self, parent):
         print("add_parent("+parent.name+")")
 
         def try_to_set_gender(old, new):
-            if old.gender == Gender.UNKNOWN and old.name == new.name:
-                old.gender = new.gender
-                return True
+            if old.name == new.name:
+                if old.gender == Gender.UNKNOWN:
+                    old.gender = new.gender
+                    return True
+                if new.gender == Gender.UNKNOWN:
+                    return True
             return False
 
         if not self.parents:
@@ -107,7 +115,7 @@ class Person(object):
         else:
             sibling.parents = self.parents
             sibling.siblings = self.siblings
-            Person.merge(self.children, [sibling])
+            Person.merge(self.siblings, [sibling])
 
     def add_spouse(self, spouse):
         if not self.spouse:
