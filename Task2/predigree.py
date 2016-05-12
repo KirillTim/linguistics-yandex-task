@@ -47,7 +47,7 @@ class Person(object):
         self.gender = gender
         self.parents = list(parents or [])
         self.children = list(children or [])
-        self.siblings = list(siblings or [])
+        self.siblings = list(siblings or [self])
         self.spouse = spouse
 
     def __hash__(self):
@@ -115,8 +115,9 @@ class Person(object):
                 self.add_parent(i)
         else:
             sibling.parents = self.parents
-            sibling.siblings = self.siblings
-            Person.merge(self.siblings, [sibling])
+        Person.merge(self.siblings, sibling.siblings)
+        for s in sibling.siblings:
+            s.siblings = self.siblings
 
     def add_spouse(self, spouse):
         if not self.spouse:
@@ -167,7 +168,8 @@ class Person(object):
         for i in list2:
             ins = True
             for j in list1:
-                if i.name == j.name and j.gender == Gender.UNKNOWN:
+                if i.name == j.name and (j.gender == Gender.UNKNOWN or
+                                                 j.gender == i.gender):
                     j.gender = i.gender
                     ins = False
                     break
@@ -196,7 +198,9 @@ class PedigreeHolder(object):
             self.people[who_name] = who
 
         whose = Person(whose_name)
-        if whose_name not in self.people:
+        if whose_name in self.people:
+            whose = self.people[whose_name]
+        else:
             self.people[whose_name] = whose
 
         PedigreeHolder.__add_relation(who, whose, Relation.by_name(rel))
@@ -238,15 +242,45 @@ class PedigreeHolder(object):
         else:
             return "No"
 
-    def relative_request(self, man, relation):
+    def relative_request(self, name, relation):
         grand = "grand"
         count = 0
+        if name not in self.people:
+            raise Exception(name + " not found")
+        who = self.people[name]
         while relation.startswith(grand):
             count += 1
             relation = relation[len(grand):]
+        if relation not in Relation.names:
+            raise Exception("Unknown relation: "+relation)
         rel = Relation.by_name(relation)
+        gender = Gender.by_relation(rel)
+        if rel in [Relation.CHILD, Relation.SON, Relation.DAUGHTER]:
+            PedigreeHolder.find_child(who, count, gender)
+        elif rel in [Relation.FATHER, Relation.MOTHER]:
+            PedigreeHolder.find_parent(who, count, gender)
+        elif rel in [Relation.SISTER, Relation.BROTHER]:
+            return PedigreeHolder.generate_string(who.siblings, gender)
+        elif rel in [Relation.HUSBAND, Relation.WIFE]:
+            if who.gender == gender:
+                raise Exception("can't have spouse with the same gender")
+            elif not who.spouse:
+                return PedigreeHolder.DONT_KNOW
+            else:
+                rv = who.spouse.name
+                if who.spouse.gender == Gender.UNKNOWN:
+                    rv += "?"
+                return rv
 
-
+    @staticmethod
+    def generate_string(people, gender):
+        rv = ""
+        for i in people:
+            if gender == Gender.UNKNOWN or gender == i.gender:
+                rv += i.name+", "
+            elif i.gender == Gender.UNKNOWN and gender != Gender.UNKNOWN:
+                rv += i.name+"?, "
+        return rv[:-2]
 
     @staticmethod
     def find_child(who, depth, gender):
@@ -258,11 +292,20 @@ class PedigreeHolder(object):
 
 if __name__ == "__main__":
     ph = PedigreeHolder()
-    ph.add("Fred is Jon's father")
-    ph.add("Ann is Jon's sister")
-    ph.add("Jon is Maria's son")
+    ph.add("Fred is Ann's brother")
+    ph.add("Alice is Ann's sister")
+    ph.add("Fred is Alice's sister")
+    ph.add("P1 is Fred's mother")
+    ph.add("P2 is Fred's father")
+    print(ph.request("Who is Fred's sister?"))
+    print(ph.request("Who is Alice's brother?"))
+    print(ph.request("Who is Ann's brother?"))
+    print(ph.request("Who is P2's wife?"))
+    #ph.add("Fred is Jon's father")
+    #ph.add("Ann is Jon's sister")
+    #ph.add("Jon is Maria's son")
 
-    print(ph.request("Is Jon a man?"))
-    print(ph.request("Is Fred a woman?"))
-    print(ph.request("Is Maria a man?"))
-    print(ph.request("Is Ann a woman?"))
+    #print(ph.request("Is Jon a man?"))
+    #print(ph.request("Is Fred a woman?"))
+    #print(ph.request("Is Maria a man?"))
+    #print(ph.request("Is Ann a woman?"))

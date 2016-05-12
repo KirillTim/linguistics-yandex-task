@@ -84,10 +84,13 @@ class PersonTest(unittest.TestCase):
         c1 = Person("c1")
         c2 = Person("c2")
         c3 = Person("c3")
-        c1.add_sibling(c2)
-        c2.add_sibling(c3)
 
-        self.assertListEqual(sorted(c1.siblings), sorted([c1,c2,c3]))
+        c2.add_sibling(c3)
+        c1.add_sibling(c2)
+
+        self.assertListEqual(sorted(c1.siblings), sorted([c1, c2, c3]))
+        self.assertListEqual(sorted(c2.siblings), sorted([c1, c2, c3]))
+        self.assertListEqual(sorted(c3.siblings), sorted([c1, c2, c3]))
 
     def test_add_spouse(self):
         c1 = Person("c1")
