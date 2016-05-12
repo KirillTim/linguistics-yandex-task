@@ -32,11 +32,12 @@ class Gender(object):
 class Relation(object):
     HUSBAND, WIFE, FATHER, MOTHER, SON, DAUGHTER, \
         SISTER, BROTHER, CHILD = range(9)
+    names = ["husband", "wife", "father", "mother", "son", "daughter",
+             "sister", "brother", "child"]
 
     @staticmethod
     def by_name(name):
-        return ["husband", "wife", "father", "mother", "son", "daughter",
-                "sister", "brother", "child"].index(name)
+        return Relation.names.index(name)
 
 
 class Person(object):
@@ -243,7 +244,9 @@ class PedigreeHolder(object):
         while relation.startswith(grand):
             count += 1
             relation = relation[len(grand):]
-        pass
+        rel = Relation.by_name(relation)
+
+
 
     @staticmethod
     def find_child(who, depth, gender):
