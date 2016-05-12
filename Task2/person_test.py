@@ -58,7 +58,7 @@ class PersonTest(unittest.TestCase):
 
         self.assertEqual(c1.parents, [Person("p1", Gender.MALE)])
 
-    def test_add_parent6(self):
+    def test_add_parent_6(self):
         c1 = Person("c1")
         p1 = Person("pa", Gender.MALE)
         p2 = Person("pa", Gender.FEMALE)
@@ -67,7 +67,7 @@ class PersonTest(unittest.TestCase):
 
         self.assertEqual(c1.parents, [p1, p2])
 
-    def test_add_sibling(self):
+    def test_add_sibling_1(self):
         c1 = Person("c1")
         p1 = Person("p1")
         c1.add_parent(p1)
@@ -79,6 +79,15 @@ class PersonTest(unittest.TestCase):
         self.assertListEqual(sorted(p1.children), sorted([c1, c2]))
         self.assertListEqual(sorted(c1.siblings), sorted([c1, c2]))
         self.assertListEqual(sorted(c2.siblings), sorted([c1, c2]))
+
+    def test_add_sibling_2(self):
+        c1 = Person("c1")
+        c2 = Person("c2")
+        c3 = Person("c3")
+        c1.add_sibling(c2)
+        c2.add_sibling(c3)
+
+        self.assertListEqual(sorted(c1.siblings), sorted([c1,c2,c3]))
 
     def test_add_spouse(self):
         c1 = Person("c1")
