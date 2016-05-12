@@ -44,9 +44,9 @@ class Person(object):
                  parents=None, children=None, siblings=None, spouse=None):
         self.name = name
         self.gender = gender
-        self.parents = parents.copy() if parents else list()
-        self.children = children.copy() if children else list()
-        self.siblings = siblings.copy() if siblings else [self]
+        self.parents = list(parents or [])
+        self.children = list(children or [])
+        self.siblings = list(siblings or [])
         self.spouse = spouse
 
     def __hash__(self):
@@ -176,45 +176,90 @@ class Person(object):
 
 
 class PedigreeHolder(object):
+    DONT_KNOW = "Don't know"
     def __init__(self):
-        self.people = []
+        self.people = {}
 
     def add(self, statement):
-        def find_node(node):
-            persons = self.find_persons(node)
-            if len(persons) > 1:
-                raise Exception("Ambiguous name: " + node.name)
-            elif len(persons) == 1:
-                return persons[0]
-            return None
-
         who_name, _is, whose_name, rel = statement.split()
         if _is != "is" or not whose_name.endswith('\'s'):
             raise Exception("Wrong input statement: "+statement)
-        who = Person(who_name, Gender.by_relation(Relation.by_name(rel)))
+        whose_name = whose_name[:-2]
+        who_gender = Gender.by_relation(Relation.by_name(rel))
+        who = Person(who_name, who_gender)
+        if who_name in self.people:
+            who = self.people[who_name]
+            if who.gender == Gender.UNKNOWN:
+                who.gender = who_gender
+        else:
+            self.people[who_name] = who
+
         whose = Person(whose_name)
-
-        node = find_node(who)
-        if node:
-            who = node
-
-        node = find_node(whose)
-        if node:
-            self.people.remove(node)
-            whose = node
+        if whose_name not in self.people:
+            self.people[whose_name] = whose
 
         PedigreeHolder.__add_relation(who, whose, Relation.by_name(rel))
-
-    def find_persons(self, who):
-        persons = []
-        for p in self.people:
-            persons += p.find_all(who)
-        return persons
 
     @staticmethod
     def __add_relation(who, whose, relation):
         if relation in [Relation.MOTHER, Relation.FATHER]:
-            for p in who.children:
-                p.add_sibling(whose)
             who.add_child(whose)
+        elif relation in [Relation.SON, Relation.DAUGHTER, Relation.CHILD]:
+            who.add_parent(whose)
+        elif relation in [Relation.WIFE, Relation.HUSBAND]:
+            who.add_spouse(whose)
+        elif relation in [Relation.SISTER, Relation.BROTHER]:
+            who.add_sibling(whose)
 
+    def request(self, question):
+        req_parts = question.split()
+        if req_parts[0] == 'Is' and req_parts[2] == 'a':
+            return self.gender_request(req_parts[1], req_parts[3][:-1])
+        elif tuple(req_parts[0:2]) == ('Who', 'is') and req_parts[2].endswith('\'s'):
+            return self.relative_request(req_parts[2][:-2], req_parts[3][:-1])
+        else:
+            raise Exception("Unknown request type")
+
+    def gender_request(self, name, gender):
+        if gender == "man":
+            req = Gender.MALE
+        elif gender == "woman":
+            req = Gender.FEMALE
+        else:
+            raise Exception("Unknown gender: "+gender)
+        if name not in self.people:
+            raise Exception(name + " not found")
+        person = self.people[name]
+        if person.gender == Gender.UNKNOWN:
+            return self.DONT_KNOW
+        elif person.gender == req:
+            return "Yes"
+        else:
+            return "No"
+
+    def relative_request(self, man, relation):
+        grand = "grand"
+        count = 0
+        while relation.startswith(grand):
+            count += 1
+            relation = relation[len(grand):]
+        pass
+
+    @staticmethod
+    def find_child(who, depth, gender):
+        pass
+
+    @staticmethod
+    def find_parent(who, depth, gender):
+        pass
+
+if __name__ == "__main__":
+    ph = PedigreeHolder()
+    ph.add("Fred is Jon's father")
+    ph.add("Ann is Jon's sister")
+    ph.add("Jon is Maria's son")
+
+    print(ph.request("Is Jon a man?"))
+    print(ph.request("Is Fred a woman?"))
+    print(ph.request("Is Maria a man?"))
+    print(ph.request("Is Ann a woman?"))
