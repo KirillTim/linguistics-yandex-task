@@ -1,8 +1,9 @@
-
-# there are only to genders and traditional families for this task
-# husband and farther are male and wife and mother are female
+# there are only to genders and families are traditional for this task
+# husband and farther are males and wife and mother are females
 # it's not about tolerance - it's about system rules
-# who to determine who are The Wachowskis without this rules?
+# how to determine who are the Wachowskis without these rules?
+
+
 class Gender(object):
     UNKNOWN, MALE, FEMALE = range(3)
 
@@ -183,6 +184,7 @@ class Person(object):
             return True
         return False
 
+
 class PedigreeHolder(object):
     DONT_KNOW = "Don't know"
 
@@ -192,7 +194,7 @@ class PedigreeHolder(object):
     def add(self, statement):
         who_name, _is, whose_name, rel = statement.split()
         if _is != "is" or not whose_name.endswith('\'s'):
-            raise Exception( "Wrong input statement: " +statement)
+            raise Exception( "Wrong input statement: " + statement)
         whose_name = whose_name[:-2]
         who_gender = Gender.by_relation(Relation.by_name(rel))
         who = Person(who_name, who_gender)
@@ -237,7 +239,7 @@ class PedigreeHolder(object):
         elif gender == "woman":
             req = Gender.FEMALE
         else:
-            raise Exception( "Unknown gender: " +gender)
+            raise Exception( "Unknown gender: " + gender)
         if name not in self.people:
             raise Exception(name + " not found")
         person = self.people[name]
@@ -249,16 +251,16 @@ class PedigreeHolder(object):
             return "No"
 
     def relative_request(self, name, relation):
-        grand = "grand"
-        count = 0
         if name not in self.people:
             raise Exception(name + " not found")
+        grand = "grand"
+        count = 0
         who = self.people[name]
         while relation.startswith(grand):
             count += 1
             relation = relation[len(grand):]
         if relation not in Relation.names:
-            raise Exception("Unknown relation: " +relation)
+            raise Exception("Unknown relation: " + relation)
         rel = Relation.by_name(relation)
         gender = Gender.by_relation(rel)
         if rel in [Relation.CHILD, Relation.SON, Relation.DAUGHTER]:
