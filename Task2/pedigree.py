@@ -1,3 +1,6 @@
+# implementation details and tests:
+# https://github.com/KirillTim/linguistics-yandex-task/tree/master/Task2
+
 # there are only to genders and families are traditional for this task
 # husband and farther are males and wife and mother are females
 # it's not about tolerance - it's about system rules
