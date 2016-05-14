@@ -73,6 +73,8 @@ class Person(object):
 
         if not self.parents:
             self.parents.append(parent)
+            if parent.spouse:
+                self.parents.append(parent.spouse)
         elif parent in self.parents:
             pass
         elif parent.name not in [p.name for p in self.parents] \
@@ -241,7 +243,7 @@ class PedigreeHolder(object):
         else:
             raise Exception("Unknown gender: " + gender)
         if name not in self.people:
-            raise Exception(name + " not found")
+            return self.DONT_KNOW
         person = self.people[name]
         if person.gender == Gender.UNKNOWN:
             return self.DONT_KNOW
@@ -252,7 +254,7 @@ class PedigreeHolder(object):
 
     def relative_request(self, name, relation):
         if name not in self.people:
-            raise Exception(name + " not found")
+            return self.DONT_KNOW
         grand = "grand"
         count = 0
         who = self.people[name]
@@ -272,7 +274,9 @@ class PedigreeHolder(object):
         elif rel in [Relation.SISTER, Relation.BROTHER]:
             if count > 0:
                 raise Exception("Unknown relation: " + relation)
-            return PedigreeHolder.generate_string(who.siblings, gender)
+            brothers_and_sisters = list(who.siblings)
+            brothers_and_sisters.remove(who)
+            return PedigreeHolder.generate_string(brothers_and_sisters, gender)
         elif rel in [Relation.HUSBAND, Relation.WIFE]:
             if count > 0:
                 raise Exception("Unknown relation: " + relation)
@@ -320,6 +324,42 @@ class PedigreeHolder(object):
 
 if __name__ == "__main__":
     ph = PedigreeHolder()
+    ph.add("Carol is Ann's daughter")
+    ph.add("Ann is Brett's wife")
+    ph.add("Darren is Brett's son")
+    ph.add("Brett is Darren's father")
+    ph.add("Carol is Frank's sister")
+    ph.add("Emily is Carol's daughter")
+    assert ph.request("Is Carol a woman?") == "Yes"
+    assert ph.request("Is Frank a man?") == "Don't know"
+    assert ph.request("Is Brett a woman?") == "No"
+    assert ph.request("Who is Rose's father?") == "Don't know"
+    assert ph.request("Who is Brett's father?") == "Don't know"
+    assert ph.request("Who is Ann's husband?") == "Brett"
+    assert ph.request("Who is Carol's father?") == "Brett"
+    assert ph.request("Who is Emily's father?") == "Don't know"
+    assert ph.request("Who is Carol's daughter?") == "Emily"
+
+    assert set(ph.request("Who is Brett's son?").split(", ")) == {"Darren", "Frank?"}
+    assert set(ph.request("Who is Ann's child?").split(", ")) == {"Carol", "Darren", "Frank"}
+
+    assert set(ph.request("Who is Darren's sister?").split(", ")) == {"Carol", "Frank?"}
+    assert ph.request("Who is Frank's brother?") == "Darren"
+    assert ph.request("Who is Darren's brother?") == "Frank?"
+    assert ph.request("Who is Emily's grandfather?") == "Brett"
+    assert ph.request("Who is Ann's grandson?") == "Don't know"
+    assert ph.request("Who is Ann's grandchild?") == "Emily"
+
+
+    ph = PedigreeHolder()
+    ph.add("Carol is Ann's daughter")
+    assert ph.request("Is Carol a woman?") == "Yes"
+    assert ph.request("Is Ann a woman?") == "Don't know"
+
+    ph.add("Ann is Brett's wife")
+    assert ph.request("Is Ann a woman?") == "Yes"
+    assert ph.request("Is Brett a woman?") == "No"
+
     ph.add("Fred is Ann's brother")
     ph.add("Alice is Ann's sister")
     ph.add("Fred is Alice's sister")
