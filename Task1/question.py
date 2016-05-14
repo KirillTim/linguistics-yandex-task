@@ -58,7 +58,7 @@ class Questioner(object):
 
     @staticmethod
     def make_modal(words, marked):
-        ind = [x.ind for x in marked if x.tag == "MD"][0]
+        ind, *_ = [x.ind for x in marked if x.tag == "MD"]
         return Questioner.move_word(words, ind)
 
     @staticmethod
