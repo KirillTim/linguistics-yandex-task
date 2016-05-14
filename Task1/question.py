@@ -1,14 +1,18 @@
+from collections import namedtuple
+
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk import word_tokenize, pos_tag, download
-from pprint import pprint
 
 
 class Questioner(object):
-    VERB_TAGS = ['MD', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
-    FORMS_OF_BE = ['IS', "AM", "ARE", "WAS", "WERE", "WILL"]
+    VERB_TAGS = ["MD", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ"]
+    FORMS_OF_BE = ["IS", "AM", "ARE", "WAS", "WERE", "WILL"]
     FORMS_OF_HAVE = ["HAVE", "HAS", "HAD"]
 
+    Verb = namedtuple('Verb', ['ind', 'word', 'tag'])
+
     def __init__(self):
+        # it should work. if not, please download `wordnet` module manually
         Questioner.download_modules()
 
     def request(self, statement):
@@ -18,63 +22,66 @@ class Questioner(object):
             raise Exception("Marked verbs not found")
         words = Questioner.remove_stars(words)
         tags = self.get_tags(" ".join(words))
-        pprint(tags)
 
         def append_tag(verb):
-            if tags[verb[0]][1] not in self.VERB_TAGS:
-                raise Exception(verb[1] + " isn't a verb!")
-            return verb[0], verb[1], tags[verb[0]][1]
+            index, word = verb
+            tag = tags[index][1]
+            if tag not in self.VERB_TAGS:
+                raise Exception(word + " isn't a verb!")
+            return Questioner.Verb(index, word, tag)
 
         marked = list(map(append_tag, marked))
 
-        pprint(marked)
-
         correct = self.make_question(words, marked)
-        pprint(" ".join(correct) + "?")
+        return " ".join(correct) + "?"
 
     def make_question(self, words, marked):
-        if 'MD' in list(map(lambda x: x[2], marked)):
+        if "MD" in list(map(lambda x: x.tag, marked)):
             return self.make_modal(words, marked)
-        elif marked[0][1].upper() in self.FORMS_OF_BE:
+        elif marked[0].word.upper() in self.FORMS_OF_BE:
             return self.make_be(words, marked)
         elif len(marked) == 1:
             return self.make_do(words, marked)
-        elif marked[0][1].upper() in self.FORMS_OF_HAVE:
+        elif marked[0].word.upper() in self.FORMS_OF_HAVE:
             return self.make_have(words, marked)
 
-    def make_modal(self, words, marked):
-        ind = [x[0] for x in marked if x[2] == 'MD'][0]
+    @staticmethod
+    def make_modal(words, marked):
+        ind = [x.ind for x in marked if x.tag == "MD"][0]
         return Questioner.move_word(words, ind)
 
-    def make_be(self, words, marked):
-        ind = marked[0][0]
+    @staticmethod
+    def make_be(words, marked):
+        ind = marked[0].ind
         return Questioner.move_word(words, ind)
 
-    def make_do(self, words, marked):
+    @staticmethod
+    def make_do(words, marked):
         def to_infinitive(verb):
             lemmatizer = WordNetLemmatizer()
             return lemmatizer.lemmatize(verb, "v")
 
         verb = marked[0]
-        if verb[2] == 'VBD':  # past tense
+        if verb.tag == "VBD":  # past tense
             do = "Did"
-        elif verb[2] == 'VBZ':  # present tense, 3rd person singular
-            do = "Dose"
+        elif verb.tag == "VBZ":  # present tense, 3rd person singular
+            do = "Does"
         else:  # present tense, not 3rd person singular
             do = "Do"
 
         rv = list(words)
-        rv[verb[0]] = to_infinitive(rv[verb[0]])
+        rv[verb.ind] = to_infinitive(rv[verb.ind])
         return [do] + rv
 
-    def make_have(self, words, marked):
-        ind = marked[0][0]
+    @staticmethod
+    def make_have(words, marked):
+        ind = marked[0].ind
         return Questioner.move_word(words, ind)
 
     @staticmethod
     def remove_nt_ending(words):
         def fun(word):
-            return word[:-4] + '*' if word.endswith("n't*") else word
+            return word[:-4] + "*" if word.endswith("n't*") else word
 
         return list(map(fun, words))
 
@@ -92,15 +99,17 @@ class Questioner(object):
         del tmp[old]
         return tmp[:new] + [w] + tmp[new:]
 
-    def get_marked_verbs(self, words):
-        verbs = filter(lambda x: x[1].endswith('*'), enumerate(words))
+    @staticmethod
+    def get_marked_verbs(words):
+        verbs = filter(lambda x: x[1].endswith("*"), enumerate(words))
         return list(map(lambda x: (x[0], x[1][:-1]), verbs))
 
-    def get_tags(self, statement):
+    @staticmethod
+    def get_tags(statement):
         text = word_tokenize(statement)
         return pos_tag(text)
 
-    # not the best solution, but I don't want to implement special exceptions
+    # not the best solution, but I don"t want to implement special exceptions
     # handler to catch `LookupError`, download resources
     # and re-run failed action
     @staticmethod
@@ -113,16 +122,15 @@ class Questioner(object):
             download("wordnet")
             print("Done.")
 
-#TODO: download nltk modules on first start if needed
 
 q = Questioner()
-q.request("Somebody couldn't* like programming")
-q.request("He is* a student")
-q.request("He is* playing* chess")
-q.request("Everyone likes* programming")
-q.request("I like* programming")
-q.request("I liked* playing chess")
-q.request("I went* to school")
-q.request("I am* going* to the university")
-q.request("My father isn't* going* to the university")
-q.request("He had* finished* his job")
+print(q.request("Somebody couldn't* like programming"))
+print(q.request("He is* a student"))
+print(q.request("He is* playing* chess"))
+print(q.request("Everyone likes* programming"))
+print(q.request("I like* programming"))
+print(q.request("I liked* playing chess"))
+print(q.request("I went* to school"))
+print(q.request("I am* going* to the university"))
+print(q.request("My father isn't* going* to the university"))
+print(q.request("He had* finished* his job"))
