@@ -12,8 +12,8 @@ class Questioner(object):
     Verb = namedtuple("Verb", ["ind", "word", "tag"])
 
     def __init__(self):
-        # not the best solution, but I don"t want to implement special exceptions
-        # handler to catch `LookupError`, download resources
+        # not the best solution, but I don't want to implement special
+        # exceptions handler to catch `LookupError`, download resources
         # and re-run failed action
         # it should work. if not, please download `wordnet` module manually
         try:
@@ -121,8 +121,9 @@ class Questioner(object):
     # will fix capital letters in most cases
     @staticmethod
     def fix_capital_letters(words):
+        def all_upper(word):
+            all(c.isupper() for c in word)
         fixed = list(words)
-        all_upper = lambda word: all(c.isupper() for c in word)
         prev = fixed[1]  # first word in input statement
         cur = fixed[0]  # first word now
         if not prev[0].isupper():  # no need to make upper
