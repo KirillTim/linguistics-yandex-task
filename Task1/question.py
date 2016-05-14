@@ -97,6 +97,7 @@ class Questioner(object):
         text = word_tokenize(statement)
         return pos_tag(text)
 
+#TODO: download nltk modules on first start if needed
 
 q = Questioner()
 # q.request("Somebody couldn't* like programming")
