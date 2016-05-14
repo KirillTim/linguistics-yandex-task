@@ -12,8 +12,18 @@ class Questioner(object):
     Verb = namedtuple('Verb', ['ind', 'word', 'tag'])
 
     def __init__(self):
+        # not the best solution, but I don"t want to implement special exceptions
+        # handler to catch `LookupError`, download resources
+        # and re-run failed action
         # it should work. if not, please download `wordnet` module manually
-        Questioner.download_modules()
+        try:
+            self.lemmatizer = WordNetLemmatizer()
+        except LookupError as err:
+            print("Resource 'corpora/wordnet' not found.")
+            print("Downloading 'corpora/wordnet'...")
+            download("wordnet")
+            print("Done.")
+            self.lemmatizer = WordNetLemmatizer()  # try again
 
     def request(self, statement):
         words = Questioner.remove_nt_ending(statement.strip().split())
@@ -55,11 +65,9 @@ class Questioner(object):
         ind = marked[0].ind
         return Questioner.move_word(words, ind)
 
-    @staticmethod
-    def make_do(words, marked):
+    def make_do(self, words, marked):
         def to_infinitive(verb):
-            lemmatizer = WordNetLemmatizer()
-            return lemmatizer.lemmatize(verb, "v")
+            return self.lemmatizer.lemmatize(verb, "v")
 
         verb = marked[0]
         if verb.tag == "VBD":  # past tense
@@ -108,19 +116,6 @@ class Questioner(object):
     def get_tags(statement):
         text = word_tokenize(statement)
         return pos_tag(text)
-
-    # not the best solution, but I don"t want to implement special exceptions
-    # handler to catch `LookupError`, download resources
-    # and re-run failed action
-    @staticmethod
-    def download_modules():
-        try:
-            lemmatizer = WordNetLemmatizer()
-        except LookupError as err:
-            print("Resource 'corpora/wordnet' not found.")
-            print("Downloading 'corpora/wordnet'...")
-            download("wordnet")
-            print("Done.")
 
 
 q = Questioner()
