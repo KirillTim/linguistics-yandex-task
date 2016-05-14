@@ -125,7 +125,7 @@ class Questioner(object):
     @staticmethod
     def fix_capital_letters(words):
         def all_upper(word):
-            all(c.isupper() for c in word)
+            return all(c.isupper() for c in word)
         fixed = list(words)
         prev = fixed[1]  # first word in input statement
         cur = fixed[0]  # first word now
@@ -139,15 +139,19 @@ class Questioner(object):
 
 
 q = Questioner()
-print(q.request("Somebody couldn't* like programming"))
-print(q.request("He is* a student"))
-print(q.request("He is* playing* chess"))
-print(q.request("Everyone likes* programming"))
-print(q.request("I like* programming"))
-print(q.request("I liked* playing chess"))
-print(q.request("I went* to school"))
-print(q.request("I am* going* to the university"))
-print(q.request("My father isn't* going* to the university"))
-print(q.request("He had* finished* his job"))
-print(q.request("USSR was* strong"))
-print(q.request("small letters are* OK"))
+# mark all parts of a compound verb
+# sentence shouldn't be in UPPER CASE
+assert q.request("Somebody couldn't* like programming") == "Could somebody like programming?"
+assert q.request("He is* a student") == "Is he a student?"
+assert q.request("He is* playing* chess") == "Is he playing chess?"
+assert q.request("Everyone likes* programming") == "Does everyone like programming?"
+assert (q.request("I like* programming"))
+# I can fix capital letters to!
+assert q.request("I liked* playing chess") == "Did I like playing chess?"
+assert q.request("USSR was* strong") == "Was USSR strong?"
+assert q.request("small letters are* OK") == "are small letters OK?"
+assert q.request("I went* to school") == "Did I go to school?"
+assert q.request("I am* going* to the university") == "Am I going to the university?"
+assert q.request("My father isn't* going* to the university") == "Is my father going to the university?"
+assert q.request("He had* finished* his job") == "Had he finished his job?"
+
