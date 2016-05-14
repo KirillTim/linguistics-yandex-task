@@ -1,3 +1,4 @@
+# author: Kirill Timofeev
 # implementation details and tests:
 # https://github.com/KirillTim/linguistics-yandex-task/tree/master/Task2
 

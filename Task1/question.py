@@ -1,3 +1,4 @@
+# author: Kirill Timofeev
 # implementation details and more:
 # https://github.com/KirillTim/linguistics-yandex-task/tree/master/Task1
 from collections import namedtuple
