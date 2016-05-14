@@ -1,5 +1,5 @@
 import unittest
-from predigree import Person, Gender, Relation
+from pedigree import Person, Gender
 
 
 class PersonTest(unittest.TestCase):
