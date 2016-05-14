@@ -9,7 +9,7 @@ class Questioner(object):
     FORMS_OF_BE = ["IS", "AM", "ARE", "WAS", "WERE", "WILL"]
     FORMS_OF_HAVE = ["HAVE", "HAS", "HAD"]
 
-    Verb = namedtuple('Verb', ['ind', 'word', 'tag'])
+    Verb = namedtuple("Verb", ["ind", "word", "tag"])
 
     def __init__(self):
         # not the best solution, but I don"t want to implement special exceptions
@@ -43,6 +43,7 @@ class Questioner(object):
         marked = list(map(append_tag, marked))
 
         correct = self.make_question(words, marked)
+        correct = Questioner.fix_capital_letters(correct)
         return " ".join(correct) + "?"
 
     def make_question(self, words, marked):
@@ -88,17 +89,17 @@ class Questioner(object):
 
     @staticmethod
     def remove_nt_ending(words):
-        def fun(word):
+        def remove_nt(word):
             return word[:-4] + "*" if word.endswith("n't*") else word
 
-        return list(map(fun, words))
+        return list(map(remove_nt, words))
 
     @staticmethod
     def remove_stars(words):
-        def fun(word):
+        def remove_star(word):
             return word[:-1] if word.endswith("*") else word
 
-        return list(map(fun, words))
+        return list(map(remove_star, words))
 
     @staticmethod
     def move_word(where, old, new=0):
@@ -117,6 +118,21 @@ class Questioner(object):
         text = word_tokenize(statement)
         return pos_tag(text)
 
+    # will fix capital letters in most cases
+    @staticmethod
+    def fix_capital_letters(words):
+        fixed = list(words)
+        all_upper = lambda word: all(c.isupper() for c in word)
+        prev = fixed[1]  # first word in input statement
+        cur = fixed[0]  # first word now
+        if not prev[0].isupper():  # no need to make upper
+            return words
+        else:
+            if not all_upper(prev):
+                fixed[1] = prev[0].lower() + prev[1:]  # so ugly :(
+            fixed[0] = cur[0].upper() + cur[1:]
+        return fixed
+
 
 q = Questioner()
 print(q.request("Somebody couldn't* like programming"))
@@ -129,3 +145,5 @@ print(q.request("I went* to school"))
 print(q.request("I am* going* to the university"))
 print(q.request("My father isn't* going* to the university"))
 print(q.request("He had* finished* his job"))
+print(q.request("USSR was* strong"))
+print(q.request("small letters are* OK"))
