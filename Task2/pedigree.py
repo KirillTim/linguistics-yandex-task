@@ -111,7 +111,7 @@ class Person(object):
 
     def add_sibling(self, sibling):
         if sibling.parents:
-            for i in sibling.parent:
+            for i in sibling.parents:
                 self.add_parent(i)
         else:
             sibling.parents = self.parents
@@ -350,10 +350,8 @@ if __name__ == "__main__":
     assert ph.request("Who is Ann's grandson?") == "Don't know"
     assert ph.request("Who is Ann's grandchild?") == "Emily"
 
-
     ph = PedigreeHolder()
     ph.add("Carol is Ann's daughter")
-    assert ph.request("Is Carol a woman?") == "Yes"
     assert ph.request("Is Ann a woman?") == "Don't know"
 
     ph.add("Ann is Brett's wife")
@@ -362,26 +360,19 @@ if __name__ == "__main__":
 
     ph.add("Fred is Ann's brother")
     ph.add("Alice is Ann's sister")
-    ph.add("Fred is Alice's sister")
     ph.add("P1 is Fred's mother")
     ph.add("P2 is Fred's father")
     ph.add("GP1 is P1's father")
-    print(ph.request("Who is Fred's sister?"))
-    print(ph.request("Who is Alice's brother?"))
-    print(ph.request("Who is Ann's brother?"))
-    print(ph.request("Who is P2's wife?"))
-    print(ph.request("Who is Alice's father?"))
-    print(ph.request("Who is Fred's mother?"))
-    print(ph.request("Who is P1's daughter?"))
-    print(ph.request("Who is P2's child?"))
-    print(ph.request("Who is GP1's grandson?"))
-    print(ph.request("Who is GP1's granddaughter?"))
-    print(ph.request("Who is Alice's grandmother?"))
-    # ph.add("Fred is Jon's father")
-    # ph.add("Ann is Jon's sister")
-    # ph.add("Jon is Maria's son")
+    assert set(ph.request("Who is Fred's sister?").split(", ")) == {"Alice", "Ann"}
+    assert ph.request("Who is Alice's brother?") == "Fred"
+    assert ph.request("Who is Ann's brother?") == "Fred"
+    assert ph.request("Who is P2's wife?") == "P1"
+    assert ph.request("Is P2 a woman?") == "No"
+    assert ph.request("Who is Alice's father?") == "P2"
+    assert set(ph.request("Who is P1's daughter?").split(", ")) == {"Alice", "Ann"}
+    assert set(ph.request("Who is P2's child?").split(", ")) == {"Alice", "Ann", "Fred"}
+    assert ph.request("Who is GP1's grandson?") == "Fred"
+    assert set(ph.request("Who is GP1's granddaughter?").split(", ")) == {"Alice", "Ann"}
+    assert ph.request("Who is Alice's grandmother?") == "Don't know"
 
-    # print(ph.request("Is Jon a man?"))
-    # print(ph.request("Is Fred a woman?"))
-    # print(ph.request("Is Maria a man?"))
-    # print(ph.request("Is Ann a woman?"))
+    assert ph.request("Who is Wader's son?") == "Don't know"
