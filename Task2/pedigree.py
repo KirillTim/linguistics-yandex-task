@@ -59,7 +59,7 @@ class Person(object):
         return self.name == other.name and self.gender == other.gender
 
     def __lt__(self, other):
-        return self.__hash__() < other.__hash__()
+        return hash(self) < hash(other)
 
     def add_parent(self, parent):
         def try_to_set_gender(old, new):
@@ -89,7 +89,7 @@ class Person(object):
         elif len(self.parents) == 2:
             if not (try_to_set_gender(self.parents[0], parent) or
                     try_to_set_gender(self.parents[1], parent)):
-                raise Exception( "Bad parent " +parent. name + " for " +self.name)
+                raise Exception("Bad parent "+parent.name+" for "+self.name)
 
         if len(self.parents) == 2:
             Person.try_fix_genders(self.parents)
@@ -99,7 +99,7 @@ class Person(object):
             ch.siblings = children
         if len(self.parents) == 2:
             for i in [0, 1]:
-                self.parents[i].spouse = self.parents[ 1 -i]
+                self.parents[i].spouse = self.parents[1-i]
                 self.parents[i].children = children
         else:
             self.parents[0].children = children
@@ -123,7 +123,7 @@ class Person(object):
         elif spouse.name != self.spouse.name:
             raise Exception(self.name + " Already have a spouse")
         elif spouse.gender != Gender.UNKNOWN and spouse.gender == self.gender:
-            raise Exception(self.name + " Cant have spouse with the same gender")
+            raise Exception(self.name+" Cant have spouse with the same gender")
         Person.try_fix_genders([self, self.spouse])
         spouse.spouse = self
         Person.merge(self.children, spouse.children)
@@ -167,7 +167,7 @@ class Person(object):
             ins = True
             for j in list1:
                 if i.name == j.name and (j.gender == Gender.UNKNOWN or
-                                                 j.gender == i.gender):
+                                         j.gender == i.gender):
                     j.gender = i.gender
                     ins = False
                     break
@@ -194,7 +194,7 @@ class PedigreeHolder(object):
     def add(self, statement):
         who_name, _is, whose_name, rel = statement.split()
         if _is != "is" or not whose_name.endswith('\'s'):
-            raise Exception( "Wrong input statement: " + statement)
+            raise Exception("Wrong input statement: " + statement)
         whose_name = whose_name[:-2]
         who_gender = Gender.by_relation(Relation.by_name(rel))
         who = Person(who_name, who_gender)
@@ -239,7 +239,7 @@ class PedigreeHolder(object):
         elif gender == "woman":
             req = Gender.FEMALE
         else:
-            raise Exception( "Unknown gender: " + gender)
+            raise Exception("Unknown gender: " + gender)
         if name not in self.people:
             raise Exception(name + " not found")
         person = self.people[name]
