@@ -1,5 +1,5 @@
 from nltk.stem.wordnet import WordNetLemmatizer
-from nltk import word_tokenize, pos_tag
+from nltk import word_tokenize, pos_tag, download
 from pprint import pprint
 
 
@@ -7,6 +7,9 @@ class Questioner(object):
     VERB_TAGS = ['MD', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
     FORMS_OF_BE = ['IS', "AM", "ARE", "WAS", "WERE", "WILL"]
     FORMS_OF_HAVE = ["HAVE", "HAS", "HAD"]
+
+    def __init__(self):
+        Questioner.download_modules()
 
     def request(self, statement):
         words = Questioner.remove_nt_ending(statement.strip().split())
@@ -97,16 +100,29 @@ class Questioner(object):
         text = word_tokenize(statement)
         return pos_tag(text)
 
+    # not the best solution, but I don't want to implement special exceptions
+    # handler to catch `LookupError`, download resources
+    # and re-run failed action
+    @staticmethod
+    def download_modules():
+        try:
+            lemmatizer = WordNetLemmatizer()
+        except LookupError as err:
+            print("Resource 'corpora/wordnet' not found.")
+            print("Downloading 'corpora/wordnet'...")
+            download("wordnet")
+            print("Done.")
+
 #TODO: download nltk modules on first start if needed
 
 q = Questioner()
-# q.request("Somebody couldn't* like programming")
-# q.request("He is* a student")
-# q.request("He is* playing* chess")
-# q.request("Everyone likes* programming")
-# q.request("I like* programming")
-# q.request("I liked* playing chess")
-# q.request("I went* to school")
-# q.request("I am* going* to the university")
-# q.request("My father isn't* going* to the university")
+q.request("Somebody couldn't* like programming")
+q.request("He is* a student")
+q.request("He is* playing* chess")
+q.request("Everyone likes* programming")
+q.request("I like* programming")
+q.request("I liked* playing chess")
+q.request("I went* to school")
+q.request("I am* going* to the university")
+q.request("My father isn't* going* to the university")
 q.request("He had* finished* his job")
